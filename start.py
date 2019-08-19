@@ -1,3 +1,5 @@
+import os
+
 from http.client import responses
 from typing import Generator, Dict, Callable, Union
 
@@ -12,15 +14,16 @@ content_type_convert_dictionaty = {
 # handlers_map: handlers_map_type = {}
 handlers_map = {}
 datakinds = {
-    '.html': 'r',
-    '.css': 'r',
-    '.js': 'r',
-    '.gif': 'rb',
-    '.jpg': 'rb',
-    '.jpeg': 'rb',
-    '.mp3': 'rb',
-    '.png': 'rb'
+    'html': 'r',
+    'css': 'r',
+    'js': 'r',
+    'gif': 'rb',
+    'jpg': 'rb',
+    'jpeg': 'rb',
+    'mp3': 'rb',
+    'png': 'rb'
 }
+mapped = False
 projectpath = './project'
 response = {}
 
@@ -41,7 +44,7 @@ def search_project_files() -> Generator[str, None, None]:
     for dirname, dirs, files in os.walk(projectpath, topdown=True):
         for file in files:
             if among_project_extensions(file):
-                yield os.path.join(dirname, file)
+                yield os.path.join(dirname, file)[len(projectpath):]
 
 
 def alter_page_content():
@@ -56,8 +59,13 @@ def read_file_content(diskpath: str, datakind: str) -> text_or_bytes_type:
 
 def map_handler(filename):
     print(filename)
-    datakind = datakinds.get(filename.split('.')[1])
-    handlers_map[filename] = dynamic_handler(read_file_content(filename, datakind))
+    extension = filename.split('.')[1]
+    print(extension)
+    datakind = datakinds.get(extension)
+    handlers_map[filename] = dynamic_handler(read_file_content(
+        filename,
+        datakind
+    ))
 
 
 def auto_map_handlers():
@@ -65,16 +73,23 @@ def auto_map_handlers():
         map_handler(filename)
 
 
-def dynamic_handler(data):
+def dynamic_handler(env, data):
     """The function emulates a static handler behaveour
     according to static files found in project's directory.
     """
-    pass
+    return {'text': data}
 
 
-def test_handler():
+def not_found_handler(env):
     return {
-        'text': 'This is a test location.',
+        'text': b'The page is not found.',
+        'status_code': 404
+    }
+
+
+def test_handler(env):
+    return {
+        'text': b'This is a test location.',
         'status_code': 200
     }
 
@@ -91,11 +106,39 @@ def get_code_string(status_code):
 
 
 def application(env, start_response):
+    global mapped
+    print(mapped)
+    if mapped == False:
+        mapped = True
+        auto_map_handlers()
     print('PATH ' + env['PATH_INFO'])
-    if env['PATH_INFO'] in handlers_map.keys():
-        status_code = 200
+    print(handlers_map)
+    path = env['PATH_INFO']
+    response_headers = {'Content-Type': 'text/html'}
+    if path in handlers_map.keys():
+        handler = handlers_map.get(path)
     else:
-        status_code = 404
+        handler = not_found_handler
+    response = handler(env)
+    status_code = response.get('status_code', 200)
+    extra_header = response.get('extra_headers', {})
+    response_headers.update(extra_header)
     code_str = get_code_string(status_code)
-    start_response(code_str, [('Content-Type', 'text/html')])
-    return [b"Hello World"]
+    start_response(code_str, list(response_headers.items()))
+    return [response['text']]
+
+
+def search_files_test():
+    for file in search_project_files():
+        print(type(file))
+        print(file)
+
+
+def main():
+    # search_files_test()
+    pass
+
+
+if __name__ == '__main__':
+
+    main()
