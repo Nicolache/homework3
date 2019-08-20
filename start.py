@@ -45,6 +45,11 @@ def among_project_extensions(filename):
     return is_in_extensions
 
 
+# def among_project_extensions(filename):
+#     print(filename.split('.')[1].lower())
+#     return filename.split('.')[1].lower() in datakinds.keys()
+
+
 def search_project_files() -> Generator[str, None, None]:
     """Gets all files locations inside `projectpath` location.
 
@@ -52,6 +57,7 @@ def search_project_files() -> Generator[str, None, None]:
     """
     for dirname, dirs, files in os.walk(projectpath, topdown=True):
         for file in files:
+            print(file.split('.')[1].lower())
             if among_project_extensions(file):
                 yield os.path.join(dirname, file)
 
@@ -124,6 +130,7 @@ def application(env, start_response):
         mapped = True
         auto_map_handlers()
     path = env['PATH_INFO']
+    print(handlers_map.keys())
     response_headers = {'Content-Type': 'text/html'}
     if path in handlers_map.keys():
         handler = handlers_map.get(path)
