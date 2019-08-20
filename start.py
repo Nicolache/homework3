@@ -38,16 +38,7 @@ response = {}
 
 
 def among_project_extensions(filename):
-    is_in_extensions = False
-    for project_extension in datakinds.keys():
-        if filename.endswith(project_extension):
-            is_in_extensions = True
-    return is_in_extensions
-
-
-# def among_project_extensions(filename):
-#     print(filename.split('.')[1].lower())
-#     return filename.split('.')[1].lower() in datakinds.keys()
+    return filename.split('.')[1].lower() in datakinds.keys()
 
 
 def search_project_files() -> Generator[str, None, None]:
@@ -57,7 +48,6 @@ def search_project_files() -> Generator[str, None, None]:
     """
     for dirname, dirs, files in os.walk(projectpath, topdown=True):
         for file in files:
-            print(file.split('.')[1].lower())
             if among_project_extensions(file):
                 yield os.path.join(dirname, file)
 
@@ -87,7 +77,7 @@ def dynamic_handler(env):
     according to static files found in project's directory.
     """
     filename = projectpath[:-1] + env['PATH_INFO']
-    extension = filename.split('.')[2]
+    extension = filename.split('.')[2].lower()
     datakind = datakinds.get(extension)
     data = read_file_content(filename, datakind)
     if extension in ('html', 'css', 'js'):
@@ -130,7 +120,6 @@ def application(env, start_response):
         mapped = True
         auto_map_handlers()
     path = env['PATH_INFO']
-    print(handlers_map.keys())
     response_headers = {'Content-Type': 'text/html'}
     if path in handlers_map.keys():
         handler = handlers_map.get(path)
