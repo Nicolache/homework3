@@ -6,10 +6,6 @@ from typing import Generator, Dict, Callable, Union
 handlers_map_type = Dict[str, Callable]
 text_or_bytes_type = Union[str, bytes]
 
-content_type_convert_dictionaty = {
-    'html': 'text/html',
-    'jpg': 'image/jpg',
-}
 # handlers_map: handlers_map_type = {}
 handlers_map = {}
 content_types = {
