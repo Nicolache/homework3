@@ -3,7 +3,6 @@ import os
 from http.client import responses
 from typing import Generator, Dict, Callable, Union
 
-
 handlers_map_type = Dict[str, Callable]
 text_or_bytes_type = Union[str, bytes]
 
@@ -44,7 +43,7 @@ def search_project_files() -> Generator[str, None, None]:
     for dirname, dirs, files in os.walk(projectpath, topdown=True):
         for file in files:
             if among_project_extensions(file):
-                yield os.path.join(dirname, file)[len(projectpath):]
+                yield os.path.join(dirname, file)
 
 
 def alter_page_content():
@@ -58,14 +57,15 @@ def read_file_content(diskpath: str, datakind: str) -> text_or_bytes_type:
 
 
 def map_handler(filename):
-    print(filename)
-    extension = filename.split('.')[1]
-    print(extension)
-    datakind = datakinds.get(extension)
-    handlers_map[filename] = dynamic_handler(read_file_content(
-        filename,
-        datakind
-    ))
+    # extension = filename.split('.')[2]
+    # datakind = datakinds.get(extension)
+    location = filename[len(projectpath):]
+    handlers_map[location] = dynamic_handler
+    # dynamic_object = dynamic_handler(read_file_content(
+    #     filename,
+    #     datakind
+    # ))
+    # handlers_map[location] = dynamic_object
 
 
 def auto_map_handlers():
@@ -73,7 +73,7 @@ def auto_map_handlers():
         map_handler(filename)
 
 
-def dynamic_handler(env, data):
+def dynamic_handler(env):
     """The function emulates a static handler behaveour
     according to static files found in project's directory.
     """
@@ -112,13 +112,15 @@ def application(env, start_response):
         mapped = True
         auto_map_handlers()
     print('PATH ' + env['PATH_INFO'])
-    print(handlers_map)
+    print(handlers_map.keys())
     path = env['PATH_INFO']
     response_headers = {'Content-Type': 'text/html'}
     if path in handlers_map.keys():
         handler = handlers_map.get(path)
     else:
         handler = not_found_handler
+    print('HANDLER:')
+    print(handler)
     response = handler(env)
     status_code = response.get('status_code', 200)
     extra_header = response.get('extra_headers', {})
