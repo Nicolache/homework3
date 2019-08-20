@@ -81,11 +81,11 @@ def dynamic_handler(env):
     according to static files found in project's directory.
     """
     filename = projectpath[:-1] + env['PATH_INFO']
-    print(filename)
     extension = filename.split('.')[2]
-    print(extension)
     datakind = datakinds.get(extension)
     data = read_file_content(filename, datakind)
+    if extension in ('html', 'css', 'js'):
+        data = data.encode("utf-8")
     content_type = content_types.get(extension)
     return {
         'text': data,
@@ -124,8 +124,6 @@ def application(env, start_response):
         mapped = True
         auto_map_handlers()
     path = env['PATH_INFO']
-    print(path)
-    print(handlers_map.keys())
     response_headers = {'Content-Type': 'text/html'}
     if path in handlers_map.keys():
         handler = handlers_map.get(path)
