@@ -1,0 +1,11 @@
+*
+!.gitignore
+!project/index.html
+!project/img
+!project/img/page.jpg
+!project/img/smeinfos.PNG
+!project/img/markov.jpg
+!project/img/brin.jpg
+!start.py
+!README.md
+!LICENSE
